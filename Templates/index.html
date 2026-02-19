@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text & Speech Normalization</title>
+</head>
+<body>
+
+<h2>Text & Speech Normalization</h2>
+
+<select id="language">
+    <option value="en">English</option>
+    <option value="hi">Hindi</option>
+    <option value="te">Telugu</option>
+</select>
+
+<br><br>
+
+<textarea id="textInput" rows="4" cols="50" placeholder="Type text here..."></textarea>
+
+<br><br>
+
+<button onclick="processText()">Normalize Text</button>
+<button onclick="startRecognition()">🎤 Speak</button>
+
+<h3>Normalized Output:</h3>
+<p id="output"></p>
+
+<button onclick="speakOutput()">🔊 Speak Output</button>
+
+<script>
+
+function processText() {
+    var text = document.getElementById("textInput").value;
+    var lang = document.getElementById("language").value;
+
+    fetch("/process", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: text, language: lang })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("output").innerText = data.normalized_text;
+    });
+}
+
+function startRecognition() {
+    var lang = document.getElementById("language").value;
+
+    var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+    if (lang === "en") recognition.lang = "en-IN";
+    if (lang === "hi") recognition.lang = "hi-IN";
+    if (lang === "te") recognition.lang = "te-IN";
+
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        var spokenText = event.results[0][0].transcript;
+        document.getElementById("textInput").value = spokenText;
+        processText();
+    };
+}
+
+function speakOutput() {
+    var text = document.getElementById("output").innerText;
+    var speech = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(speech);
+}
+
+</script>
+
+</body>
+</html>
